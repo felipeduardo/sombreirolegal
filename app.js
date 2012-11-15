@@ -40,14 +40,14 @@ Ext.application({
     },
 
     launch: function() {
-        // The following is accomplished with the Google Map API
-        var position = new google.maps.LatLng(37.44885, -122.158592),  //Sencha HQ
+        /* The following is accomplished with the Google Map API */
+        //var position = new google.maps.LatLng(37.44885, -122.158592),  //Sencha HQ
 
         infowindow = new google.maps.InfoWindow({
             content: 'Sencha HQ'
         }),
 
-        //Tracking Marker Image
+        /* Tracking Marker Image */
         image = new google.maps.MarkerImage(
             'resources/images/point.png',
             new google.maps.Size(32, 31),
@@ -62,15 +62,16 @@ Ext.application({
             new google.maps.Point(-5, 42)
         ),
 
+        /* Buttons */
         trackingButton = Ext.create('Ext.Button', {
             iconMask: true,
+            pressed: true,
             iconCls: 'locate'
         }),
 
-        trafficButton = Ext.create('Ext.Button', {
+        searchButton = Ext.create('Ext.Button', {
             iconMask: true,
-            pressed: true,
-            iconCls: 'maps'
+            iconCls: 'search'
         }),
 
         toolbar = Ext.create('Ext.Toolbar', {
@@ -82,27 +83,19 @@ Ext.application({
             },
             items: [
                 {
-                    iconCls: 'home',
-                    handler: function() {
-                        //disable tracking
-                        var segmented = Ext.getCmp('segmented'),
-                            pressedButtons = segmented.getPressedButtons(),
-                            trafficIndex = pressedButtons.indexOf(trafficButton),
-                            newPressed = (trafficIndex != -1) ? [trafficButton] : [];
-                        segmented.setPressedButtons(newPressed);
-                        mapdemo.getMap().panTo(position);
-                    }
-                },
-                {
                     id: 'segmented',
                     xtype: 'segmentedbutton',
                     allowMultiple: true,
                     listeners: {
                         toggle: function(buttons, button, active) {
-                            if (button == trafficButton) {
+                            if (button == searchButton) {
+
                                 mapdemo.getPlugins()[1].setHidden(!active);
-                            }
-                            else if (button == trackingButton) {
+
+                                /* TODO: search in API e MARK positions from API PLANTE AQUI */
+
+                            } else if (button == trackingButton) {
+
                                 var tracker = mapdemo.getPlugins()[0],
                                     marker = tracker.getMarker();
                                 marker.setVisible(active);
@@ -124,16 +117,42 @@ Ext.application({
                         }
                     },
                     items: [
-                        trackingButton, trafficButton
+                        trackingButton, searchButton
                     ]
                 }
             ]
         });
 
+        toolbarBottom = Ext.create('Ext.Toolbar', {
+            docked: 'bottom',
+            ui: 'dark',
+            defaults: {
+                iconMask: true
+            },
+            items: [
+                {
+                    xtype: 'spacer'
+                },
+                {
+                    xtype: 'button',
+                    text: 'Tem Sombra Aqui!',
+                    handler: function() {
+
+                        /* TODO: send data to API Plante Aqui */
+                        console.log('Aqui tem sombra...')
+
+                    }
+                }
+            ]
+        });
+
         var mapdemo = Ext.create('Ext.Map', {
+
+            useCurrentLocation: false,
+
             mapOptions : {
-                center : new google.maps.LatLng(37.381592, -122.135672),  //nearby San Fran
-                zoom : 12,
+                //center : new google.maps.LatLng(37.381592, -122.135672),  //nearby San Fran
+                zoom : 15,
                 mapTypeId : google.maps.MapTypeId.ROADMAP,
                 navigationControl: true,
                 navigationControlOptions: {
@@ -143,11 +162,10 @@ Ext.application({
 
             plugins : [
                 new Ext.plugin.google.Tracker({
-                    trackSuspended: true,   //suspend tracking initially
-                    allowHighAccuracy: false,
+                    trackSuspended: false,   //suspend tracking initially
+                    allowHighAccuracy: true,
                     marker: new google.maps.Marker({
-                        position: position,
-                        title: 'My Current Location',
+                        title: 'Minha Localização Atual',
                         shadow: shadow,
                         icon: image
                     })
@@ -158,8 +176,8 @@ Ext.application({
             listeners: {
                 maprender: function(comp, map) {
                     var marker = new google.maps.Marker({
-                        position: position,
-                        title : 'Sencha HQ',
+                        useCurrentLocation: false,
+                        title : 'Minha Localização',
                         map: map
                     });
 
@@ -167,9 +185,9 @@ Ext.application({
                         infowindow.open(map, marker);
                     });
 
-                    setTimeout(function() {
+                    /*setTimeout(function() {
                         map.panTo(position);
-                    }, 1000);
+                    }, 1000);*/
                 }
 
             }
@@ -178,19 +196,7 @@ Ext.application({
         Ext.create('Ext.Panel', {
             fullscreen: true,
             layout: 'fit',
-            items: [toolbar, mapdemo]
+            items: [toolbar, mapdemo, toolbarBottom]
         });
-    },
-
-    onUpdated: function() {
-        Ext.Msg.confirm(
-            "Application Update",
-            "This application has just successfully been updated to the latest version. Reload now?",
-            function(buttonId) {
-                if (buttonId === 'yes') {
-                    window.location.reload();
-                }
-            }
-        );
     }
 });
